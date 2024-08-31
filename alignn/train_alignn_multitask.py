@@ -8,7 +8,7 @@ import sys
 import json
 import zipfile
 from alignn.data import get_train_val_loaders
-from alignn.train import train_dgl
+from alignn.train_multitask import train_dgl
 from alignn.config import TrainingConfig
 from jarvis.db.jsonutils import loadjson
 import argparse
@@ -210,6 +210,20 @@ def train_for_folder(
         train_atom = True
     else:
         train_atom = False
+
+    train_target2 = False
+    train_target3 = False
+    train_target4 = False
+    train_target5 = False
+
+    if config.model.target2 != 0:
+        train_target2 = True
+    if config.model.target3 != 0:
+        train_target3 = True
+    if config.model.target4 != 0:
+        train_target4 = True
+    if config.model.target5 != 0:
+        train_target5 = True
 
     # if config.model.atomwise_weight == 0:
     #    train_atom = False
