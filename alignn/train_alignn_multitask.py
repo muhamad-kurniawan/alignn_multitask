@@ -149,7 +149,7 @@ def train_for_folder(
     target_key="total_energy",
     atomwise_key="forces",
     gradwise_key="forces",
-    stresswise_key="stresses",
+    ="stresses",
     file_format="poscar",
     restart_model_path=None,
     output_dir=None,
