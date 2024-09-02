@@ -390,4 +390,5 @@ class ALIGNN(nn.Module):
         for head in self.heads:
             outputs.append(head(out))
             
-        return torch.squeeze(out)
+        # return torch.squeeze(out)
+        return outputs
