@@ -310,12 +310,12 @@ class ALIGNN(nn.Module):
                 if output_nodes == 2:  # Binary classification
                     self.heads.append(nn.Sequential(
                         nn.Linear(config.hidden_features, 1),
-                        nn.Sigmoid()
+                        nn.BCEWithLogitsLoss()
                     ))
                 else:  # Multi-class classification
                     self.heads.append(nn.Sequential(
                         nn.Linear(config.hidden_features, output_nodes),
-                        nn.Softmax(dim=-1)
+                        nn.CrossEntropyLoss(dim=-1)
                     ))
 
     def forward(
@@ -389,6 +389,6 @@ class ALIGNN(nn.Module):
         outputs = []
         for head in self.heads:
             outputs.append(head(out))
-            
+
         # return torch.squeeze(out)
         return outputs
