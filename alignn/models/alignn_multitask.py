@@ -20,39 +20,10 @@ from alignn.models.utils import RBFExpansion
 from alignn.utils import BaseSettings
 
 
-class ALIGNNConfig(BaseSettings):
-    """Hyperparameter schema for jarvisdgl.models.alignn."""
-
-    name: Literal["alignn"]
-    alignn_layers: int = 4
-    gcn_layers: int = 4
-    atom_input_features: int = 92
-    edge_input_features: int = 80
-    triplet_input_features: int = 40
-    embedding_features: int = 64
-    hidden_features: int = 256
-    # fc_layers: int = 1
-    # fc_features: int = 64
-    output_features: int = 1
-
-    # if link == log, apply `exp` to final outputs
-    # to constrain predictions to be positive
-    link: Literal["identity", "log", "logit"] = "identity"
-    zero_inflated: bool = False
-    classification: bool = False
-    num_classes: int = 2
-    extra_features: int = 0
-
-    class Config:
-        """Configure model settings behavior."""
-
-        env_prefix = "jv_model"
-
 # class ALIGNNConfig(BaseSettings):
-#     """Configuration for each task in the multitask model."""
-#     task_types: List[Literal["regression", "classification"]]
-#     output_nodes: List[int]  # This list should contain the number of output nodes per task
+#     """Hyperparameter schema for jarvisdgl.models.alignn."""
 
+#     name: Literal["alignn"]
 #     alignn_layers: int = 4
 #     gcn_layers: int = 4
 #     atom_input_features: int = 92
@@ -60,12 +31,41 @@ class ALIGNNConfig(BaseSettings):
 #     triplet_input_features: int = 40
 #     embedding_features: int = 64
 #     hidden_features: int = 256
+#     # fc_layers: int = 1
+#     # fc_features: int = 64
+#     output_features: int = 1
+
+#     # if link == log, apply `exp` to final outputs
+#     # to constrain predictions to be positive
 #     link: Literal["identity", "log", "logit"] = "identity"
-    
+#     zero_inflated: bool = False
+#     classification: bool = False
+#     num_classes: int = 2
+#     extra_features: int = 0
+
 #     class Config:
 #         """Configure model settings behavior."""
 
 #         env_prefix = "jv_model"
+
+class ALIGNNConfig(BaseSettings):
+    """Configuration for each task in the multitask model."""
+    task_types: List[Literal["regression", "classification"]]
+    output_nodes: List[int]  # This list should contain the number of output nodes per task
+
+    alignn_layers: int = 4
+    gcn_layers: int = 4
+    atom_input_features: int = 92
+    edge_input_features: int = 80
+    triplet_input_features: int = 40
+    embedding_features: int = 64
+    hidden_features: int = 256
+    link: Literal["identity", "log", "logit"] = "identity"
+    
+    class Config:
+        """Configure model settings behavior."""
+
+        env_prefix = "jv_model"
 
 
 class EdgeGatedGraphConv(nn.Module):
