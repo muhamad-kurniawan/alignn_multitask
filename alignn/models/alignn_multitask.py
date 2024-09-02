@@ -289,18 +289,34 @@ class ALIGNN(nn.Module):
                 config.extra_features + config.hidden_features,
             )
 
-        self.link = None
-        self.link_name = config.link
-        if config.link == "identity":
-            self.link = lambda x: x
-        elif config.link == "log":
-            self.link = torch.exp
-            avg_gap = 0.7  # magic number -- average bandgap in dft_3d
-            self.fc.bias.data = torch.tensor(
-                np.log(avg_gap), dtype=torch.float
-            )
-        elif config.link == "logit":
-            self.link = torch.sigmoid
+        # self.link = None
+        # self.link_name = config.link
+        # if config.link == "identity":
+        #     self.link = lambda x: x
+        # elif config.link == "log":
+        #     self.link = torch.exp
+        #     avg_gap = 0.7  # magic number -- average bandgap in dft_3d
+        #     self.fc.bias.data = torch.tensor(
+        #         np.log(avg_gap), dtype=torch.float
+        #     )
+        # elif config.link == "logit":
+        #     self.link = torch.sigmoid
+
+        self.heads = nn.ModuleList()
+        for task_type, output_nodes in zip(config.task_types, config.output_nodes):
+            if task_type == "regression":
+                self.heads.append(nn.Linear(config.hidden_features, output_nodes))
+            elif task_type == "classification":
+                if output_nodes == 2:  # Binary classification
+                    self.heads.append(nn.Sequential(
+                        nn.Linear(config.hidden_features, 1),
+                        nn.Sigmoid()
+                    ))
+                else:  # Multi-class classification
+                    self.heads.append(nn.Sequential(
+                        nn.Linear(config.hidden_features, output_nodes),
+                        nn.Softmax(dim=-1)
+                    ))
 
     def forward(
         self, g: Union[Tuple[dgl.DGLGraph, dgl.DGLGraph], dgl.DGLGraph]
@@ -363,10 +379,15 @@ class ALIGNN(nn.Module):
         else:
             out = self.fc(h)
 
-        if self.link:
-            out = self.link(out)
+        # if self.link:
+        #     out = self.link(out)
 
-        if self.classification:
-            # out = torch.round(torch.sigmoid(out))
-            out = self.softmax(out)
+        # if self.classification:
+        #     # out = torch.round(torch.sigmoid(out))
+        #     out = self.softmax(out)
+
+        outputs = []
+        for head in self.heads:
+            outputs.append(head(out))
+            
         return torch.squeeze(out)
