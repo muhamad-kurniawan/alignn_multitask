@@ -265,7 +265,7 @@ def get_train_val_loaders(
         #         dat.append(i)
         #         all_targets.append(i[target])
 
-        
+        print(d[0].keys())
         all_targets = []
         for i in d:
             target_values = []
