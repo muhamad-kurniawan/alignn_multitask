@@ -119,7 +119,7 @@ def get_train_val_loaders(
     dataset: str = "dft_3d",
     dataset_array=None,
     # target: str = "formation_energy_peratom",
-    targets: List[Dict[str, str]],
+    targets: List[Dict[str, str]] = [{"":""}],
     target_atomwise: str = "",
     target_grad: str = "",
     target_stress: str = "",
