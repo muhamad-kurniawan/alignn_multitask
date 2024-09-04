@@ -720,7 +720,7 @@ class StructureDataset(DGLDataset):
         df: pd.DataFrame,
         graphs: Sequence[dgl.DGLGraph],
         # target: str,
-        targets: List[Dict[str, str]],
+        targets: List[Dict[str, str]] = [{"":""}],
         target_atomwise="",
         target_grad="",
         target_stress="",
