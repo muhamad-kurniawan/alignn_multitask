@@ -720,7 +720,7 @@ class StructureDataset(DGLDataset):
         df: pd.DataFrame,
         graphs: Sequence[dgl.DGLGraph],
         # target: str,
-        targets: List[str],
+        targets: List[Dict[str, str]],
         target_atomwise="",
         target_grad="",
         target_stress="",
@@ -741,13 +741,29 @@ class StructureDataset(DGLDataset):
         """
         self.df = df
         self.graphs = graphs
+        # self.target = target
         self.targets = targets
         self.target_atomwise = target_atomwise
         self.target_grad = target_grad
         self.target_stress = target_stress
         self.line_graph = line_graph
         print("df", df)
-        self.labels = self.df[targets]
+        # self.labels = self.df[target]
+        
+        # self.labels = self.df[targets]
+
+        # Store graph-level labels as a list of tensors, handling regression and classification separately
+        self.labels = []
+        for target in targets:
+            target_labels = torch.tensor(self.df[target['key']]).type(
+                torch.get_default_dtype()
+            )
+            if target['type'] == "classification":
+                target_labels = target_labels.view(-1).long()
+                print(f"Classification target: {target['name']}", target_labels)
+            else:
+                print(f"Regression target: {target['name']}", target_labels)
+            self.labels.append(target_labels)
 
         if (
             self.target_atomwise is not None and self.target_atomwise != ""
@@ -788,7 +804,7 @@ class StructureDataset(DGLDataset):
             # self.labels_stress = self.df[self.target_stress]
 
         self.ids = self.df[id_tag]
-        self.labels = torch.tensor(self.df[target]).type(
+        self.labels = torch.tensor(self.df[targets]).type(
             torch.get_default_dtype()
         )
         self.transform = transform
@@ -865,15 +881,16 @@ class StructureDataset(DGLDataset):
     def __getitem__(self, idx):
         """Get StructureDataset sample."""
         g = self.graphs[idx]
-        label = self.labels[idx]
+        # labels = self.labels[idx]
+        labels = [label[idx] for label in self.labels]
         # id = self.ids[idx]
         if self.transform:
             g = self.transform(g)
 
         if self.line_graph:
-            return g, self.line_graphs[idx], label
+            return g, self.line_graphs[idx], labels
 
-        return g, label
+        return g, labels
 
     def setup_standardizer(self, ids):
         """Atom-wise feature standardization transform."""
