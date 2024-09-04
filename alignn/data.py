@@ -238,32 +238,52 @@ def get_train_val_loaders(
                 tmp.append(ii)
             print("Made all qm9_dgl")
             d = tmp
+        # for i in d:
+        #     if isinstance(i[target], list):  # multioutput target
+        #         all_targets.append(torch.tensor(i[target]))
+        #         dat.append(i)
+
+        #     elif (
+        #         i[target] is not None
+        #         and i[target] != "na"
+        #         and not math.isnan(i[target])
+        #     ):
+        #         if target_multiplication_factor is not None:
+        #             i[target] = i[target] * target_multiplication_factor
+        #         if classification_threshold is not None:
+        #             if i[target] <= classification_threshold:
+        #                 i[target] = 0
+        #             elif i[target] > classification_threshold:
+        #                 i[target] = 1
+        #             else:
+        #                 raise ValueError(
+        #                     "Check classification data type.",
+        #                     i[target],
+        #                     type(i[target]),
+        #                 )
+        #         dat.append(i)
+        #         all_targets.append(i[target])
+
+        
+        all_targets = []
         for i in d:
-            if isinstance(i[target], list):  # multioutput target
-                all_targets.append(torch.tensor(i[target]))
+            target_values = []
+            for target in targets:
+                value = i[target['key']]
+                if value is not None and value != "na" and not math.isnan(value):
+                    if target['type'] == 'classification':
+                        if target.get('classification_threshold') is not None:
+                            if value <= target['classification_threshold']:
+                                value = 0
+                            else:
+                                value = 1
+                        value = int(value)  # Ensure classification labels are integers
+                    target_values.append(value)
+            if target_values:
+                all_targets.append(target_values)
                 dat.append(i)
 
-            elif (
-                i[target] is not None
-                and i[target] != "na"
-                and not math.isnan(i[target])
-            ):
-                if target_multiplication_factor is not None:
-                    i[target] = i[target] * target_multiplication_factor
-                if classification_threshold is not None:
-                    if i[target] <= classification_threshold:
-                        i[target] = 0
-                    elif i[target] > classification_threshold:
-                        i[target] = 1
-                    else:
-                        raise ValueError(
-                            "Check classification data type.",
-                            i[target],
-                            type(i[target]),
-                        )
-                dat.append(i)
-                all_targets.append(i[target])
-
+        
         # id_test = ids[-test_size:]
         # if standardize:
         #    data.setup_standardizer(id_train)
