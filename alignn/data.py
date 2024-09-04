@@ -1,7 +1,7 @@
 """ALIGNN data loaders and DGLGraph utilities."""
 
 import random
-from typing import Optional
+from typing import Optional, Dict, List
 from torch.utils.data.distributed import DistributedSampler
 import os
 import torch
