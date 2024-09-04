@@ -719,7 +719,8 @@ class StructureDataset(DGLDataset):
         self,
         df: pd.DataFrame,
         graphs: Sequence[dgl.DGLGraph],
-        target: str,
+        # target: str,
+        targets: List[str],
         target_atomwise="",
         target_grad="",
         target_stress="",
@@ -740,13 +741,13 @@ class StructureDataset(DGLDataset):
         """
         self.df = df
         self.graphs = graphs
-        self.target = target
+        self.targets = targets
         self.target_atomwise = target_atomwise
         self.target_grad = target_grad
         self.target_stress = target_stress
         self.line_graph = line_graph
         print("df", df)
-        self.labels = self.df[target]
+        self.labels = self.df[targets]
 
         if (
             self.target_atomwise is not None and self.target_atomwise != ""
