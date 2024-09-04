@@ -14,6 +14,7 @@ import math
 from collections import defaultdict
 from typing import List, Tuple, Sequence, Optional
 from dgl.data import DGLDataset
+from typing import Dict, List, Optional
 
 import torch
 import dgl
