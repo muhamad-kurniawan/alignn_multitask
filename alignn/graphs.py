@@ -1119,9 +1119,7 @@ class StructureDataset(DGLDataset):
             return batched_graph, batched_line_graph, torch.stack(labels)
         else:
             return batched_graph, batched_line_graph, torch.tensor(labels)
-"""
 
-"""
 if __name__ == "__main__":
     from jarvis.core.atoms import Atoms
     from jarvis.db.figshare import get_jid_data
