@@ -283,7 +283,8 @@ def get_train_val_loaders(
             if target_values:
                 all_targets.append(target_values)
                 dat.append(i)
-
+        print('dat : ',dat[0])
+        print('d : ',d[0])
         
         # id_test = ids[-test_size:]
         # if standardize:
