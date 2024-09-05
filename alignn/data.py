@@ -269,12 +269,12 @@ def get_train_val_loaders(
         all_targets = []
         for i in d:
             target_values = []
-            for target in targets:
-                value = i[target['key']]
+            for id_target in range(len(targets)):
+                value = i['target'][id_target]
                 if value is not None and value != "na" and not math.isnan(value):
-                    if target['type'] == 'classification':
-                        if target.get('classification_threshold') is not None:
-                            if value <= target['classification_threshold']:
+                    if targets[id_target]['type'] == 'classification':
+                        if targets[id_target].get('classification_threshold') is not None:
+                            if value <= targets[id_target]['classification_threshold']:
                                 value = 0
                             else:
                                 value = 1
