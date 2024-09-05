@@ -745,13 +745,18 @@ class StructureDataset(DGLDataset):
             target_type = target['type']
 
             # Extract the target for each sample from 'target' column
-            target_labels = torch.tensor([sample['target'][idx] for sample in self.df]).type(
+            # target_labels = torch.tensor([sample['target'][idx] for sample in self.df]).type(
+            #     torch.get_default_dtype()
+            # )
+            target_labels = torch.tensor([sample['target'][idx] for sample in self.df.to_dict('records')]).type(
                 torch.get_default_dtype()
             )
 
+
             # Handle classification separately (convert to long tensor)
             if target_type == "classification":
-                target_labels = target_labels.view(-1).long()
+                # target_labels = target_labels.view(-1).long()
+                target_labels = target_labels.long()
                 print(f"Classification target: {target_key}", target_labels)
             else:
                 print(f"Regression target: {target_key}", target_labels)
