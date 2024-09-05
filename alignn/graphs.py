@@ -754,15 +754,15 @@ class StructureDataset(DGLDataset):
 
         # Store graph-level labels as a list of tensors, handling regression and classification separately
         self.labels = []
-        for target in targets:
-            target_labels = torch.tensor(self.df[target['key']]).type(
+        for id_target in range(len(targets)):
+            target_labels = torch.tensor(self.df['target'][id_target]).type(
                 torch.get_default_dtype()
             )
-            if target['type'] == "classification":
+            if targets[id_target]['type'] == "classification":
                 target_labels = target_labels.view(-1).long()
-                print(f"Classification target: {target['name']}", target_labels)
+                print(f"Classification target: {targets[id_target]['key']}", target_labels)
             else:
-                print(f"Regression target: {target['name']}", target_labels)
+                print(f"Regression target: {targets[id_target]['key']}", target_labels)
             self.labels.append(target_labels)
 
         if (
