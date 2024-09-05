@@ -188,9 +188,10 @@ def get_torch_dataset(
 
     # Log the range for each target in the dataset
     f = open(os.path.join(output_dir, tmp_name + "_data_range"), "w")
-    for target in targets:
-        target_key = target['key']
-        vals = np.array([ii[target_key] for ii in dataset])
+    for id_target in range(len(targets)):
+        target_key = targets[id_target]['key']
+        # vals = np.array([ii[target_key] for ii in dataset])
+        vals = np.array([ii['target'][id_target] for ii in dataset])
         print(f"Data range for {target_key}: Max = {np.max(vals)}, Min = {np.min(vals)}")
         f.write(f"Target: {target_key}\n")
         f.write(f"Max = {np.max(vals)}\n")
