@@ -196,6 +196,7 @@ def train_dgl(
             keep_data_order=config.keep_data_order,
             output_dir=config.output_dir,
             use_lmdb=config.use_lmdb,
+            cachedir=config.cachedir
         )
     else:
         train_loader = train_val_test_loaders[0]
