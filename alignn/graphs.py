@@ -711,7 +711,191 @@ def compute_bond_cosines(edges):
     # print (bond_cosine,bond_cosine.shape)
     return {"h": bond_cosine}
 
+class StructureDataset(DGLDataset):
+    """Dataset of crystal DGLGraphs."""
 
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        graphs: Sequence[dgl.DGLGraph],
+        targets: List[Dict[str, str]],  # List of targets with 'key' and 'type'
+        target_atomwise="",
+        target_grad="",
+        target_stress="",
+        atom_features="atomic_number",
+        transform=None,
+        line_graph=False,
+        classification=False,
+        id_tag="jid",
+        sampler=None,
+    ):
+        """Pytorch Dataset for atomistic graphs."""
+        self.df = df
+        self.graphs = graphs
+        self.targets = targets
+        self.target_atomwise = target_atomwise
+        self.target_grad = target_grad
+        self.target_stress = target_stress
+        self.line_graph = line_graph
+
+        # Store graph-level labels as a list of tensors for each task (regression/classification)
+        self.labels = []
+        for idx, target in enumerate(targets):
+            target_key = target['key']  # Not directly used, targets are in 'target' column
+            target_type = target['type']
+
+            # Extract the target for each sample from 'target' column
+            target_labels = torch.tensor([sample['target'][idx] for sample in self.df]).type(
+                torch.get_default_dtype()
+            )
+
+            # Handle classification separately (convert to long tensor)
+            if target_type == "classification":
+                target_labels = target_labels.view(-1).long()
+                print(f"Classification target: {target_key}", target_labels)
+            else:
+                print(f"Regression target: {target_key}", target_labels)
+
+            self.labels.append(target_labels)
+
+        # Handle atomwise, gradient, and stress labels (as before)
+        if self.target_atomwise:
+            self.labels_atomwise = [
+                torch.tensor(np.array(i[self.target_atomwise])).type(
+                    torch.get_default_dtype()
+                )
+                for _, i in df.iterrows()
+            ]
+
+        if self.target_grad:
+            self.labels_grad = [
+                torch.tensor(np.array(i[self.target_grad])).type(
+                    torch.get_default_dtype()
+                )
+                for _, i in df.iterrows()
+            ]
+
+        if self.target_stress:
+            self.labels_stress = [
+                i[self.target_stress] for _, i in df.iterrows()
+            ]
+
+        # Assign sample IDs from the DataFrame
+        self.ids = self.df[id_tag]
+
+        self.transform = transform
+
+        # Lookup atomic number features (or other atom features)
+        features = self._get_attribute_lookup(atom_features)
+
+        # Load node features (e.g., atomic numbers)
+        for i, g in enumerate(graphs):
+            z = g.ndata.pop("atom_features")
+            g.ndata["atomic_number"] = z
+            z = z.type(torch.IntTensor).squeeze()
+            f = torch.tensor(features[z]).type(torch.FloatTensor)
+            if g.num_nodes() == 1:
+                f = f.unsqueeze(0)
+            g.ndata["atom_features"] = f
+
+            # Assign atomwise, gradient, and stress data to graph nodes
+            if self.target_atomwise:
+                g.ndata[self.target_atomwise] = self.labels_atomwise[i]
+            if self.target_grad:
+                g.ndata[self.target_grad] = self.labels_grad[i]
+            if self.target_stress:
+                g.ndata[self.target_stress] = torch.tensor(
+                    [self.labels_stress[i] for _ in range(len(z))]
+                ).type(torch.get_default_dtype())
+
+        self.prepare_batch = prepare_dgl_batch
+        if line_graph:
+            self.prepare_batch = prepare_line_graph_batch
+            self.line_graphs = []
+            for g in tqdm(graphs):
+                lg = g.line_graph(shared=True)
+                lg.apply_edges(compute_bond_cosines)
+                self.line_graphs.append(lg)
+
+        # Handle dataset classification if needed
+        if classification:
+            print("Classification dataset with labels:", self.labels)
+
+    @staticmethod
+    def _get_attribute_lookup(atom_features: str = "cgcnn"):
+        """Build a lookup array indexed by atomic number."""
+        max_z = max(v["Z"] for v in chem_data.values())
+
+        # get feature shape (referencing Carbon)
+        template = get_node_attributes("C", atom_features)
+
+        features = np.zeros((1 + max_z, len(template)))
+
+        for element, v in chem_data.items():
+            z = v["Z"]
+            x = get_node_attributes(element, atom_features)
+
+            if x is not None:
+                features[z, :] = x
+
+        return features
+
+    def __len__(self):
+        """Get length."""
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        """Get StructureDataset sample."""
+        g = self.graphs[idx]
+        labels = [label[idx] for label in self.labels]  # Get all target labels
+        if self.transform:
+            g = self.transform(g)
+
+        if self.line_graph:
+            return g, self.line_graphs[idx], labels
+
+        return g, labels
+
+    def setup_standardizer(self, ids):
+        """Atom-wise feature standardization transform."""
+        x = torch.cat(
+            [
+                g.ndata["atom_features"]
+                for idx, g in enumerate(self.graphs)
+                if idx in ids
+            ]
+        )
+        self.atom_feature_mean = x.mean(0)
+        self.atom_feature_std = x.std(0)
+
+        self.transform = Standardize(
+            self.atom_feature_mean, self.atom_feature_std
+        )
+
+    @staticmethod
+    def collate(samples: List[Tuple[dgl.DGLGraph, torch.Tensor]]):
+        """Dataloader helper to batch graphs cross `samples`."""
+        graphs, labels = map(list, zip(*samples))
+        batched_graph = dgl.batch(graphs)
+        batched_labels = [torch.stack([label[i] for label in labels]) for i in range(len(labels[0]))]
+        
+        return batched_graph, batched_labels
+
+    @staticmethod
+    def collate_line_graph(
+        samples: List[Tuple[dgl.DGLGraph, dgl.DGLGraph, torch.Tensor]]
+    ):
+        """Dataloader helper to batch graphs cross `samples`."""
+        graphs, line_graphs, labels = map(list, zip(*samples))
+        batched_graph = dgl.batch(graphs)
+        batched_line_graph = dgl.batch(line_graphs)
+        if len(labels[0].size()) > 0:
+            return batched_graph, batched_line_graph, torch.stack(labels)
+        else:
+            return batched_graph, batched_line_graph, torch.tensor(labels)
+
+
+"""
 class StructureDataset(DGLDataset):
     """Dataset of crystal DGLGraphs."""
 
@@ -930,7 +1114,7 @@ class StructureDataset(DGLDataset):
             return batched_graph, batched_line_graph, torch.stack(labels)
         else:
             return batched_graph, batched_line_graph, torch.tensor(labels)
-
+"""
 
 """
 if __name__ == "__main__":
