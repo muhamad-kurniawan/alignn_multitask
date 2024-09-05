@@ -105,10 +105,68 @@ def load_graphs(
     return graphs
 
 
+# def get_torch_dataset(
+#     dataset=[],
+#     id_tag="jid",
+#     target="",
+#     target_atomwise="",
+#     target_grad="",
+#     target_stress="",
+#     neighbor_strategy="",
+#     atom_features="",
+#     use_canonize="",
+#     name="",
+#     line_graph="",
+#     cutoff=8.0,
+#     cutoff_extra=3.0,
+#     max_neighbors=12,
+#     classification=False,
+#     output_dir=".",
+#     tmp_name="dataset",
+#     sampler=None,
+# ):
+#     """Get Torch Dataset."""
+#     df = pd.DataFrame(dataset)
+#     # df['natoms']=df['atoms'].apply(lambda x: len(x['elements']))
+#     # print(" data df", df)
+#     vals = np.array([ii[target] for ii in dataset])  # df[target].values
+#     print("data range", np.max(vals), np.min(vals))
+#     f = open(os.path.join(output_dir, tmp_name + "_data_range"), "w")
+#     line = "Max=" + str(np.max(vals)) + "\n"
+#     f.write(line)
+#     line = "Min=" + str(np.min(vals)) + "\n"
+#     f.write(line)
+#     f.close()
+
+#     graphs = load_graphs(
+#         df,
+#         name=name,
+#         neighbor_strategy=neighbor_strategy,
+#         use_canonize=use_canonize,
+#         cutoff=cutoff,
+#         cutoff_extra=cutoff_extra,
+#         max_neighbors=max_neighbors,
+#         id_tag=id_tag,
+#     )
+#     data = StructureDataset(
+#         df,
+#         graphs,
+#         target=target,
+#         target_atomwise=target_atomwise,
+#         target_grad=target_grad,
+#         target_stress=target_stress,
+#         atom_features=atom_features,
+#         line_graph=line_graph,
+#         id_tag=id_tag,
+#         classification=classification,
+#         sampler=sampler,
+#     )
+#     return data
+
 def get_torch_dataset(
     dataset=[],
     id_tag="jid",
-    target="",
+    targets=[],  # List of dictionaries for multitask learning
     target_atomwise="",
     target_grad="",
     target_stress="",
@@ -120,24 +178,27 @@ def get_torch_dataset(
     cutoff=8.0,
     cutoff_extra=3.0,
     max_neighbors=12,
-    classification=False,
+    classification=False,  # If any of the tasks are classification
     output_dir=".",
     tmp_name="dataset",
     sampler=None,
 ):
     """Get Torch Dataset."""
     df = pd.DataFrame(dataset)
-    # df['natoms']=df['atoms'].apply(lambda x: len(x['elements']))
-    # print(" data df", df)
-    vals = np.array([ii[target] for ii in dataset])  # df[target].values
-    print("data range", np.max(vals), np.min(vals))
+
+    # Log the range for each target in the dataset
     f = open(os.path.join(output_dir, tmp_name + "_data_range"), "w")
-    line = "Max=" + str(np.max(vals)) + "\n"
-    f.write(line)
-    line = "Min=" + str(np.min(vals)) + "\n"
-    f.write(line)
+    for target in targets:
+        target_key = target['key']
+        vals = np.array([ii[target_key] for ii in dataset])
+        print(f"Data range for {target_key}: Max = {np.max(vals)}, Min = {np.min(vals)}")
+        f.write(f"Target: {target_key}\n")
+        f.write(f"Max = {np.max(vals)}\n")
+        f.write(f"Min = {np.min(vals)}\n")
+        f.write("\n")
     f.close()
 
+    # Load graphs as before
     graphs = load_graphs(
         df,
         name=name,
@@ -148,17 +209,20 @@ def get_torch_dataset(
         max_neighbors=max_neighbors,
         id_tag=id_tag,
     )
+
+    # Update StructureDataset to handle multiple targets
     data = StructureDataset(
         df,
         graphs,
-        target=target,
+        targets=targets,  # Pass the list of targets
         target_atomwise=target_atomwise,
         target_grad=target_grad,
         target_stress=target_stress,
         atom_features=atom_features,
         line_graph=line_graph,
         id_tag=id_tag,
-        classification=classification,
+        classification=classification,  # If any of the tasks are classification
         sampler=sampler,
     )
+    
     return data
