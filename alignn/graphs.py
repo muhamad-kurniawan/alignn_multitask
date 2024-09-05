@@ -901,269 +901,269 @@ class StructureDataset(DGLDataset):
 
 
 """
-class StructureDataset(DGLDataset):
-    """Dataset of crystal DGLGraphs."""
+# class StructureDataset(DGLDataset):
+#     """Dataset of crystal DGLGraphs."""
 
-    def __init__(
-        self,
-        df: pd.DataFrame,
-        graphs: Sequence[dgl.DGLGraph],
-        # target: str,
-        targets: List[Dict[str, str]] = [{"":""}],
-        target_atomwise="",
-        target_grad="",
-        target_stress="",
-        atom_features="atomic_number",
-        transform=None,
-        line_graph=False,
-        classification=False,
-        id_tag="jid",
-        sampler=None,
-    ):
-        """Pytorch Dataset for atomistic graphs.
+#     def __init__(
+#         self,
+#         df: pd.DataFrame,
+#         graphs: Sequence[dgl.DGLGraph],
+#         # target: str,
+#         targets: List[Dict[str, str]] = [{"":""}],
+#         target_atomwise="",
+#         target_grad="",
+#         target_stress="",
+#         atom_features="atomic_number",
+#         transform=None,
+#         line_graph=False,
+#         classification=False,
+#         id_tag="jid",
+#         sampler=None,
+#     ):
+#         """Pytorch Dataset for atomistic graphs.
 
-        `df`: pandas dataframe from e.g. jarvis.db.figshare.data
-        `graphs`: DGLGraph representations corresponding to rows in `df`
-        `target`: key for label column in `df`
-        `target_grad`: For fitting forces etc.
-        `target_atomwise`: For fitting bader charge on atoms etc.
-        """
-        self.df = df
-        self.graphs = graphs
-        # self.target = target
-        self.targets = targets
-        self.target_atomwise = target_atomwise
-        self.target_grad = target_grad
-        self.target_stress = target_stress
-        self.line_graph = line_graph
-        print("df", df)
-        # self.labels = self.df[target]
+#         `df`: pandas dataframe from e.g. jarvis.db.figshare.data
+#         `graphs`: DGLGraph representations corresponding to rows in `df`
+#         `target`: key for label column in `df`
+#         `target_grad`: For fitting forces etc.
+#         `target_atomwise`: For fitting bader charge on atoms etc.
+#         """
+#         self.df = df
+#         self.graphs = graphs
+#         # self.target = target
+#         self.targets = targets
+#         self.target_atomwise = target_atomwise
+#         self.target_grad = target_grad
+#         self.target_stress = target_stress
+#         self.line_graph = line_graph
+#         print("df", df)
+#         # self.labels = self.df[target]
         
-        # self.labels = self.df[targets]
+#         # self.labels = self.df[targets]
 
-        # Store graph-level labels as a list of tensors, handling regression and classification separately
-        self.labels = []
-        for id_target in range(len(targets)):
-            target_labels = torch.tensor(self.df['target'][id_target]).type(
-                torch.get_default_dtype()
-            )
-            if targets[id_target]['type'] == "classification":
-                target_labels = target_labels.view(-1).long()
-                print(f"Classification target: {targets[id_target]['key']}", target_labels)
-            else:
-                print(f"Regression target: {targets[id_target]['key']}", target_labels)
-            self.labels.append(target_labels)
+#         # Store graph-level labels as a list of tensors, handling regression and classification separately
+#         self.labels = []
+#         for id_target in range(len(targets)):
+#             target_labels = torch.tensor(self.df['target'][id_target]).type(
+#                 torch.get_default_dtype()
+#             )
+#             if targets[id_target]['type'] == "classification":
+#                 target_labels = target_labels.view(-1).long()
+#                 print(f"Classification target: {targets[id_target]['key']}", target_labels)
+#             else:
+#                 print(f"Regression target: {targets[id_target]['key']}", target_labels)
+#             self.labels.append(target_labels)
 
-        if (
-            self.target_atomwise is not None and self.target_atomwise != ""
-        ):  # and "" not in self.target_atomwise:
-            # self.labels_atomwise = df[self.target_atomwise]
-            self.labels_atomwise = []
-            for ii, i in df.iterrows():
-                self.labels_atomwise.append(
-                    torch.tensor(np.array(i[self.target_atomwise])).type(
-                        torch.get_default_dtype()
-                    )
-                )
+#         if (
+#             self.target_atomwise is not None and self.target_atomwise != ""
+#         ):  # and "" not in self.target_atomwise:
+#             # self.labels_atomwise = df[self.target_atomwise]
+#             self.labels_atomwise = []
+#             for ii, i in df.iterrows():
+#                 self.labels_atomwise.append(
+#                     torch.tensor(np.array(i[self.target_atomwise])).type(
+#                         torch.get_default_dtype()
+#                     )
+#                 )
 
-        if (
-            self.target_grad is not None and self.target_grad != ""
-        ):  # and "" not in  self.target_grad :
-            # self.labels_atomwise = df[self.target_atomwise]
-            self.labels_grad = []
-            for ii, i in df.iterrows():
-                self.labels_grad.append(
-                    torch.tensor(np.array(i[self.target_grad])).type(
-                        torch.get_default_dtype()
-                    )
-                )
-            # print (self.labels_atomwise)
-        if (
-            self.target_stress is not None and self.target_stress != ""
-        ):  # and "" not in  self.target_stress :
-            # self.labels_atomwise = df[self.target_atomwise]
-            self.labels_stress = []
-            for ii, i in df.iterrows():
-                self.labels_stress.append(i[self.target_stress])
-                # self.labels_stress.append(
-                #    torch.tensor(np.array(i[self.target_stress])).type(
-                #        torch.get_default_dtype()
-                #    )
-                # )
-            # self.labels_stress = self.df[self.target_stress]
+#         if (
+#             self.target_grad is not None and self.target_grad != ""
+#         ):  # and "" not in  self.target_grad :
+#             # self.labels_atomwise = df[self.target_atomwise]
+#             self.labels_grad = []
+#             for ii, i in df.iterrows():
+#                 self.labels_grad.append(
+#                     torch.tensor(np.array(i[self.target_grad])).type(
+#                         torch.get_default_dtype()
+#                     )
+#                 )
+#             # print (self.labels_atomwise)
+#         if (
+#             self.target_stress is not None and self.target_stress != ""
+#         ):  # and "" not in  self.target_stress :
+#             # self.labels_atomwise = df[self.target_atomwise]
+#             self.labels_stress = []
+#             for ii, i in df.iterrows():
+#                 self.labels_stress.append(i[self.target_stress])
+#                 # self.labels_stress.append(
+#                 #    torch.tensor(np.array(i[self.target_stress])).type(
+#                 #        torch.get_default_dtype()
+#                 #    )
+#                 # )
+#             # self.labels_stress = self.df[self.target_stress]
 
-        self.ids = self.df[id_tag]
-        self.labels = torch.tensor(self.df[targets]).type(
-            torch.get_default_dtype()
-        )
-        self.transform = transform
+#         self.ids = self.df[id_tag]
+#         self.labels = torch.tensor(self.df[targets]).type(
+#             torch.get_default_dtype()
+#         )
+#         self.transform = transform
 
-        features = self._get_attribute_lookup(atom_features)
+#         features = self._get_attribute_lookup(atom_features)
 
-        # load selected node representation
-        # assume graphs contain atomic number in g.ndata["atom_features"]
-        for i, g in enumerate(graphs):
-            z = g.ndata.pop("atom_features")
-            g.ndata["atomic_number"] = z
-            z = z.type(torch.IntTensor).squeeze()
-            f = torch.tensor(features[z]).type(torch.FloatTensor)
-            if g.num_nodes() == 1:
-                f = f.unsqueeze(0)
-            g.ndata["atom_features"] = f
-            if (
-                self.target_atomwise is not None and self.target_atomwise != ""
-            ):  # and "" not in self.target_atomwise:
-                g.ndata[self.target_atomwise] = self.labels_atomwise[i]
-            if (
-                self.target_grad is not None and self.target_grad != ""
-            ):  # and "" not in  self.target_grad:
-                g.ndata[self.target_grad] = self.labels_grad[i]
-            if (
-                self.target_stress is not None and self.target_stress != ""
-            ):  # and "" not in  self.target_stress:
-                # print(
-                #    "self.labels_stress[i]",
-                #    [self.labels_stress[i] for ii in range(len(z))],
-                # )
-                g.ndata[self.target_stress] = torch.tensor(
-                    [self.labels_stress[i] for ii in range(len(z))]
-                ).type(torch.get_default_dtype())
+#         # load selected node representation
+#         # assume graphs contain atomic number in g.ndata["atom_features"]
+#         for i, g in enumerate(graphs):
+#             z = g.ndata.pop("atom_features")
+#             g.ndata["atomic_number"] = z
+#             z = z.type(torch.IntTensor).squeeze()
+#             f = torch.tensor(features[z]).type(torch.FloatTensor)
+#             if g.num_nodes() == 1:
+#                 f = f.unsqueeze(0)
+#             g.ndata["atom_features"] = f
+#             if (
+#                 self.target_atomwise is not None and self.target_atomwise != ""
+#             ):  # and "" not in self.target_atomwise:
+#                 g.ndata[self.target_atomwise] = self.labels_atomwise[i]
+#             if (
+#                 self.target_grad is not None and self.target_grad != ""
+#             ):  # and "" not in  self.target_grad:
+#                 g.ndata[self.target_grad] = self.labels_grad[i]
+#             if (
+#                 self.target_stress is not None and self.target_stress != ""
+#             ):  # and "" not in  self.target_stress:
+#                 # print(
+#                 #    "self.labels_stress[i]",
+#                 #    [self.labels_stress[i] for ii in range(len(z))],
+#                 # )
+#                 g.ndata[self.target_stress] = torch.tensor(
+#                     [self.labels_stress[i] for ii in range(len(z))]
+#                 ).type(torch.get_default_dtype())
 
-        self.prepare_batch = prepare_dgl_batch
-        if line_graph:
-            self.prepare_batch = prepare_line_graph_batch
+#         self.prepare_batch = prepare_dgl_batch
+#         if line_graph:
+#             self.prepare_batch = prepare_line_graph_batch
 
-            print("building line graphs")
-            self.line_graphs = []
-            for g in tqdm(graphs):
-                lg = g.line_graph(shared=True)
-                lg.apply_edges(compute_bond_cosines)
-                self.line_graphs.append(lg)
+#             print("building line graphs")
+#             self.line_graphs = []
+#             for g in tqdm(graphs):
+#                 lg = g.line_graph(shared=True)
+#                 lg.apply_edges(compute_bond_cosines)
+#                 self.line_graphs.append(lg)
 
-        if classification:
-            self.labels = self.labels.view(-1).long()
-            print("Classification dataset.", self.labels)
+#         if classification:
+#             self.labels = self.labels.view(-1).long()
+#             print("Classification dataset.", self.labels)
 
-    @staticmethod
-    def _get_attribute_lookup(atom_features: str = "cgcnn"):
-        """Build a lookup array indexed by atomic number."""
-        max_z = max(v["Z"] for v in chem_data.values())
+#     @staticmethod
+#     def _get_attribute_lookup(atom_features: str = "cgcnn"):
+#         """Build a lookup array indexed by atomic number."""
+#         max_z = max(v["Z"] for v in chem_data.values())
 
-        # get feature shape (referencing Carbon)
-        template = get_node_attributes("C", atom_features)
+#         # get feature shape (referencing Carbon)
+#         template = get_node_attributes("C", atom_features)
 
-        features = np.zeros((1 + max_z, len(template)))
+#         features = np.zeros((1 + max_z, len(template)))
 
-        for element, v in chem_data.items():
-            z = v["Z"]
-            x = get_node_attributes(element, atom_features)
+#         for element, v in chem_data.items():
+#             z = v["Z"]
+#             x = get_node_attributes(element, atom_features)
 
-            if x is not None:
-                features[z, :] = x
+#             if x is not None:
+#                 features[z, :] = x
 
-        return features
+#         return features
 
-    def __len__(self):
-        """Get length."""
-        return self.labels.shape[0]
+#     def __len__(self):
+#         """Get length."""
+#         return self.labels.shape[0]
 
-    def __getitem__(self, idx):
-        """Get StructureDataset sample."""
-        g = self.graphs[idx]
-        # labels = self.labels[idx]
-        labels = [label[idx] for label in self.labels]
-        # id = self.ids[idx]
-        if self.transform:
-            g = self.transform(g)
+#     def __getitem__(self, idx):
+#         """Get StructureDataset sample."""
+#         g = self.graphs[idx]
+#         # labels = self.labels[idx]
+#         labels = [label[idx] for label in self.labels]
+#         # id = self.ids[idx]
+#         if self.transform:
+#             g = self.transform(g)
 
-        if self.line_graph:
-            return g, self.line_graphs[idx], labels
+#         if self.line_graph:
+#             return g, self.line_graphs[idx], labels
 
-        return g, labels
+#         return g, labels
 
-    def setup_standardizer(self, ids):
-        """Atom-wise feature standardization transform."""
-        x = torch.cat(
-            [
-                g.ndata["atom_features"]
-                for idx, g in enumerate(self.graphs)
-                if idx in ids
-            ]
-        )
-        self.atom_feature_mean = x.mean(0)
-        self.atom_feature_std = x.std(0)
+#     def setup_standardizer(self, ids):
+#         """Atom-wise feature standardization transform."""
+#         x = torch.cat(
+#             [
+#                 g.ndata["atom_features"]
+#                 for idx, g in enumerate(self.graphs)
+#                 if idx in ids
+#             ]
+#         )
+#         self.atom_feature_mean = x.mean(0)
+#         self.atom_feature_std = x.std(0)
 
-        self.transform = Standardize(
-            self.atom_feature_mean, self.atom_feature_std
-        )
+#         self.transform = Standardize(
+#             self.atom_feature_mean, self.atom_feature_std
+#         )
 
-    @staticmethod
-    def collate(samples: List[Tuple[dgl.DGLGraph, torch.Tensor]]):
-        """Dataloader helper to batch graphs cross `samples`."""
-        graphs, labels = map(list, zip(*samples))
-        batched_graph = dgl.batch(graphs)
-        batched_labels = [torch.stack([label[i] for label in labels]) for i in range(len(labels[0]))]
+#     @staticmethod
+#     def collate(samples: List[Tuple[dgl.DGLGraph, torch.Tensor]]):
+#         """Dataloader helper to batch graphs cross `samples`."""
+#         graphs, labels = map(list, zip(*samples))
+#         batched_graph = dgl.batch(graphs)
+#         batched_labels = [torch.stack([label[i] for label in labels]) for i in range(len(labels[0]))]
         
-        return batched_graph, batched_labels
-        # return batched_graph, torch.tensor(labels)
+#         return batched_graph, batched_labels
+#         # return batched_graph, torch.tensor(labels)
 
-    @staticmethod
-    def collate_line_graph(
-        samples: List[Tuple[dgl.DGLGraph, dgl.DGLGraph, torch.Tensor]]
-    ):
-        """Dataloader helper to batch graphs cross `samples`."""
-        graphs, line_graphs, labels = map(list, zip(*samples))
-        batched_graph = dgl.batch(graphs)
-        batched_line_graph = dgl.batch(line_graphs)
-        if len(labels[0].size()) > 0:
-            return batched_graph, batched_line_graph, torch.stack(labels)
-        else:
-            return batched_graph, batched_line_graph, torch.tensor(labels)
+#     @staticmethod
+#     def collate_line_graph(
+#         samples: List[Tuple[dgl.DGLGraph, dgl.DGLGraph, torch.Tensor]]
+#     ):
+#         """Dataloader helper to batch graphs cross `samples`."""
+#         graphs, line_graphs, labels = map(list, zip(*samples))
+#         batched_graph = dgl.batch(graphs)
+#         batched_line_graph = dgl.batch(line_graphs)
+#         if len(labels[0].size()) > 0:
+#             return batched_graph, batched_line_graph, torch.stack(labels)
+#         else:
+#             return batched_graph, batched_line_graph, torch.tensor(labels)
 
-if __name__ == "__main__":
-    from jarvis.core.atoms import Atoms
-    from jarvis.db.figshare import get_jid_data
+# if __name__ == "__main__":
+#     from jarvis.core.atoms import Atoms
+#     from jarvis.db.figshare import get_jid_data
 
-    atoms = Atoms.from_dict(get_jid_data("JVASP-664")["atoms"])
-    g = Graph.from_atoms(
-        atoms=atoms,
-        features="basic",
-        get_prim=True,
-        zero_diag=True,
-        node_atomwise_angle_dist=True,
-        node_atomwise_rdf=True,
-    )
-    g = Graph.from_atoms(
-        atoms=atoms,
-        features="cfid",
-        get_prim=True,
-        zero_diag=True,
-        node_atomwise_angle_dist=True,
-        node_atomwise_rdf=True,
-    )
-    g = Graph.from_atoms(
-        atoms=atoms,
-        features="atomic_number",
-        get_prim=True,
-        zero_diag=True,
-        node_atomwise_angle_dist=True,
-        node_atomwise_rdf=True,
-    )
-    g = Graph.from_atoms(atoms=atoms, features="basic")
-    g = Graph.from_atoms(
-        atoms=atoms, features=["Z", "atom_mass", "max_oxid_s"]
-    )
-    g = Graph.from_atoms(atoms=atoms, features="cfid")
-    # print(g)
-    d = g.to_dict()
-    g = Graph.from_dict(d)
-    num_nodes = g.num_nodes
-    num_edges = g.num_edges
-    print(num_nodes, num_edges)
-    assert num_nodes == 48
-    assert num_edges == 2304
-    assert len(g.adjacency_matrix) == 2304
-    # graph, color_map = get_networkx_graph(atoms)
-    # nx.draw(graph, node_color=color_map, with_labels=True)
-    # from jarvis.analysis.structure.neighbors import NeighborsAnalysis
+#     atoms = Atoms.from_dict(get_jid_data("JVASP-664")["atoms"])
+#     g = Graph.from_atoms(
+#         atoms=atoms,
+#         features="basic",
+#         get_prim=True,
+#         zero_diag=True,
+#         node_atomwise_angle_dist=True,
+#         node_atomwise_rdf=True,
+#     )
+#     g = Graph.from_atoms(
+#         atoms=atoms,
+#         features="cfid",
+#         get_prim=True,
+#         zero_diag=True,
+#         node_atomwise_angle_dist=True,
+#         node_atomwise_rdf=True,
+#     )
+#     g = Graph.from_atoms(
+#         atoms=atoms,
+#         features="atomic_number",
+#         get_prim=True,
+#         zero_diag=True,
+#         node_atomwise_angle_dist=True,
+#         node_atomwise_rdf=True,
+#     )
+#     g = Graph.from_atoms(atoms=atoms, features="basic")
+#     g = Graph.from_atoms(
+#         atoms=atoms, features=["Z", "atom_mass", "max_oxid_s"]
+#     )
+#     g = Graph.from_atoms(atoms=atoms, features="cfid")
+#     # print(g)
+#     d = g.to_dict()
+#     g = Graph.from_dict(d)
+#     num_nodes = g.num_nodes
+#     num_edges = g.num_edges
+#     print(num_nodes, num_edges)
+#     assert num_nodes == 48
+#     assert num_edges == 2304
+#     assert len(g.adjacency_matrix) == 2304
+#     # graph, color_map = get_networkx_graph(atoms)
+#     # nx.draw(graph, node_color=color_map, with_labels=True)
+#     # from jarvis.analysis.structure.neighbors import NeighborsAnalysis
 """
