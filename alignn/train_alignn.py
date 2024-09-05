@@ -402,6 +402,7 @@ def train_for_folder(
         keep_data_order=config.keep_data_order,
         output_dir=config.output_dir,
         use_lmdb=config.use_lmdb,
+        chacedir=config.chacedir
     )
     # print("dataset", dataset[0])
     t1 = time.time()
