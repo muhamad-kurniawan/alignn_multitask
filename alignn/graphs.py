@@ -900,7 +900,7 @@ class StructureDataset(DGLDataset):
             return batched_graph, batched_line_graph, torch.tensor(labels)
 
 
-"""
+
 # class StructureDataset(DGLDataset):
 #     """Dataset of crystal DGLGraphs."""
 
@@ -1166,4 +1166,4 @@ class StructureDataset(DGLDataset):
 #     # graph, color_map = get_networkx_graph(atoms)
 #     # nx.draw(graph, node_color=color_map, with_labels=True)
 #     # from jarvis.analysis.structure.neighbors import NeighborsAnalysis
-"""
+
