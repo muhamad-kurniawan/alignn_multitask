@@ -175,6 +175,7 @@ def get_torch_dataset(
     use_canonize="",
     name="",
     line_graph="",
+    cachedir=None,
     cutoff=8.0,
     cutoff_extra=3.0,
     max_neighbors=12,
@@ -209,6 +210,7 @@ def get_torch_dataset(
         cutoff_extra=cutoff_extra,
         max_neighbors=max_neighbors,
         id_tag=id_tag,
+        cachedir=cachedir
     )
 
     # Update StructureDataset to handle multiple targets
