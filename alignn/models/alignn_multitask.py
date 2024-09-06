@@ -270,7 +270,7 @@ class ALIGNNMT(nn.Module):
         #     self.softmax = nn.LogSoftmax(dim=1)
         # else:
         
-        self.fc = nn.Linear(config.hidden_features, config.output_features)
+        # self.fc = nn.Linear(config.hidden_features, config.output_features)
 
         if config.extra_features != 0:
             # Credit for extra_features work:
@@ -378,8 +378,8 @@ class ALIGNNMT(nn.Module):
             h = self.fc2(h)
 
             out = self.fc3(h)
-        else:
-            out = self.fc(h)
+        # else:
+        #     out = self.fc(h)
 
         # if self.link:
         #     out = self.link(out)
@@ -390,7 +390,7 @@ class ALIGNNMT(nn.Module):
 
         outputs = []
         for head in self.heads:
-            outputs.append(head(out))
+            outputs.append(head(h))
 
         # return torch.squeeze(out)
         return outputs
