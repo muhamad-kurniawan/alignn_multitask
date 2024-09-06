@@ -263,11 +263,11 @@ class ALIGNNMT(nn.Module):
 
         self.readout = AvgPooling()
         self.readout_feat = AvgPooling()
-        if self.classification:
-            self.fc = nn.Linear(config.hidden_features, config.num_classes)
-            self.softmax = nn.LogSoftmax(dim=1)
-        else:
-            self.fc = nn.Linear(config.hidden_features, config.output_features)
+        # if self.classification:
+        #     self.fc = nn.Linear(config.hidden_features, config.num_classes)
+        #     self.softmax = nn.LogSoftmax(dim=1)
+        # else:
+        #     self.fc = nn.Linear(config.hidden_features, config.output_features)
 
         if config.extra_features != 0:
             # Credit for extra_features work:
