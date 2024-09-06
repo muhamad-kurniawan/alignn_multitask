@@ -12,7 +12,7 @@ import torch
 from dgl.nn import AvgPooling
 
 # from dgl.nn.functional import edge_softmax
-from typing import Literal
+from typing import Literal, List
 from torch import nn
 from torch.nn import functional as F
 
