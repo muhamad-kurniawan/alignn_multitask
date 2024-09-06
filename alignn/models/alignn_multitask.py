@@ -269,7 +269,8 @@ class ALIGNNMT(nn.Module):
         #     self.fc = nn.Linear(config.hidden_features, config.num_classes)
         #     self.softmax = nn.LogSoftmax(dim=1)
         # else:
-        #     self.fc = nn.Linear(config.hidden_features, config.output_features)
+        
+        self.fc = nn.Linear(config.hidden_features, config.output_features)
 
         if config.extra_features != 0:
             # Credit for extra_features work:
