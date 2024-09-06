@@ -50,9 +50,9 @@ from alignn.utils import BaseSettings
 
 class ALIGNNMTConfig(BaseSettings):
     """Configuration for each task in the multitask model."""
+    name: Literal["alignnmt"]
     task_types: List[Literal["regression", "classification"]] = ["regression"]
     output_nodes: List[int] = [1] # This list should contain the number of output nodes per task
-    name: Literal["alignnmt"]
     alignn_layers: int = 4
     gcn_layers: int = 4
     atom_input_features: int = 92
