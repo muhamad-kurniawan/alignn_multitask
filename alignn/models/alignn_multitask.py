@@ -52,7 +52,7 @@ class ALIGNNMTConfig(BaseSettings):
     """Configuration for each task in the multitask model."""
     task_types: List[Literal["regression", "classification"]] = ["regression"]
     output_nodes: List[int] = [1] # This list should contain the number of output nodes per task
-
+    name: Literal["alignnmt"]
     alignn_layers: int = 4
     gcn_layers: int = 4
     atom_input_features: int = 92
@@ -214,7 +214,7 @@ class ALIGNNMT(nn.Module):
     and atomistic line graph.
     """
 
-    def __init__(self, config: ALIGNNConfig = ALIGNNConfig(name="alignn")):
+    def __init__(self, config: ALIGNNMTConfig = ALIGNNMTConfig(name="alignnmt")):
         """Initialize class with number of input features, conv layers."""
         super().__init__()
         # print(config)
