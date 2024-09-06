@@ -219,7 +219,6 @@ class ALIGNNMT(nn.Module):
         super().__init__()
         # print(config)
         self.config = config
-        self.types = config.types
 
         self.atom_embedding = MLPLayer(
             config.atom_input_features, config.hidden_features
