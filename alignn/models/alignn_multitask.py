@@ -50,8 +50,8 @@ from alignn.utils import BaseSettings
 
 class ALIGNNConfig(BaseSettings):
     """Configuration for each task in the multitask model."""
-    task_types: List[Literal["regression", "classification"]]
-    output_nodes: List[int]  # This list should contain the number of output nodes per task
+    task_types: List[Literal["regression", "classification"]] = ["regression"]
+    output_nodes: List[int] = [1] # This list should contain the number of output nodes per task
 
     alignn_layers: int = 4
     gcn_layers: int = 4
@@ -219,7 +219,7 @@ class ALIGNN(nn.Module):
         super().__init__()
         # print(config)
         self.config = config
-        self.classification = config.classification
+        self.types = config.types
 
         self.atom_embedding = MLPLayer(
             config.atom_input_features, config.hidden_features
