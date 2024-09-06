@@ -48,7 +48,7 @@ from alignn.utils import BaseSettings
 
 #         env_prefix = "jv_model"
 
-class ALIGNNConfig(BaseSettings):
+class ALIGNNMTConfig(BaseSettings):
     """Configuration for each task in the multitask model."""
     task_types: List[Literal["regression", "classification"]] = ["regression"]
     output_nodes: List[int] = [1] # This list should contain the number of output nodes per task
@@ -207,7 +207,7 @@ class MLPLayer(nn.Module):
         return self.layer(x)
 
 
-class ALIGNN(nn.Module):
+class ALIGNNMT(nn.Module):
     """Atomistic Line graph network.
 
     Chain alternating gated graph convolution updates on crystal graph
