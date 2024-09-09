@@ -321,7 +321,7 @@ class ALIGNNMT(nn.Module):
         #                 nn.CrossEntropyLoss(dim=-1)
         #             ))
 
-        for task_type, output_nodes in zip(config.task_types, config.output_nodes):
+        for idx, (task_type, output_nodes) in enumerate(zip(config.task_types, config.output_nodes)):
             if task_type == "regression":
                 # Use ResidualNetwork for both mean and log_std prediction
                 # Output will be 2 * output_nodes: first half for mean, second half for log_std
