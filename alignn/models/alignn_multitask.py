@@ -322,6 +322,8 @@ class ALIGNNMT(nn.Module):
         #             ))
 
         for idx, (task_type, output_nodes) in enumerate(zip(config.task_types, config.output_nodes)):
+            if config.robust:
+                output_nodes = 2 * output_nodes
             if task_type == "regression":
                 # Use ResidualNetwork for both mean and log_std prediction
                 # Output will be 2 * output_nodes: first half for mean, second half for log_std
@@ -329,7 +331,7 @@ class ALIGNNMT(nn.Module):
                 self.heads.append(
                     ResidualNetwork(
                         input_dim=config.hidden_features,   # Input from the hidden layer
-                        output_dim=2 * output_nodes,        # 2x output for mean and log_std
+                        output_dim=output_nodes,        # 2x output for mean and log_std
                         hidden_layer_dims=[64, 64],         # Example hidden layers
                         activation=nn.ReLU,                # Activation function
                         batch_norm=True                     # Use batch normalization
@@ -418,14 +420,11 @@ class ALIGNNMT(nn.Module):
         outputs = []
         # for head in self.heads:
         #     outputs.append(head(h))
-
-        for idx, head in enumerate(self.heads):
-            if target_list[idx]["type"] == "regression":
+        if config.robust:
+            for idx, head in enumerate(self.heads):
                 output = head(h)  # Output will be (2 * output_nodes,)
                 pred_mean, pred_log_std = torch.chunk(output, 2, dim=-1)  # Split into mean and log_std
                 outputs.append((pred_mean, pred_log_std))
-            else:
-                outputs.append(head(h))  # For classification tasks, return only the prediction
 
         # return torch.squeeze(out)
         return outputs
