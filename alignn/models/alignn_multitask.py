@@ -305,20 +305,45 @@ class ALIGNNMT(nn.Module):
         #     self.link = torch.sigmoid
 
         self.heads = nn.ModuleList()
+        # for task_type, output_nodes in zip(config.task_types, config.output_nodes):
+        #     if task_type == "regression":
+        #         self.heads.append(nn.Linear(config.hidden_features, output_nodes))
+        #     elif task_type == "classification":
+        #         if output_nodes == 2:  # Binary classification
+        #             self.heads.append(nn.Sequential(
+        #                 nn.Linear(config.hidden_features, 1),
+        #                 nn.BCEWithLogitsLoss()
+        #             ))
+        #         else:  # Multi-class classification
+        #             self.heads.append(nn.Sequential(
+        #                 nn.Linear(config.hidden_features, output_nodes),
+        #                 nn.CrossEntropyLoss(dim=-1)
+        #             ))
+
         for task_type, output_nodes in zip(config.task_types, config.output_nodes):
             if task_type == "regression":
-                self.heads.append(nn.Linear(config.hidden_features, output_nodes))
+                # Use ResidualNetwork for both mean and log_std prediction
+                # Output will be 2 * output_nodes: first half for mean, second half for log_std
+                self.heads.append(
+                    ResidualNetwork(
+                        input_dim=config.hidden_features,   # Input from the hidden layer
+                        output_dim=2 * output_nodes,        # 2x output for mean and log_std
+                        hidden_layer_dims=[64, 64],         # Example hidden layers
+                        activation=nn.ReLU,                # Activation function
+                        batch_norm=True                     # Use batch normalization
+                    )
+                )
             elif task_type == "classification":
-                if output_nodes == 2:  # Binary classification
-                    self.heads.append(nn.Sequential(
-                        nn.Linear(config.hidden_features, 1),
-                        nn.BCEWithLogitsLoss()
-                    ))
-                else:  # Multi-class classification
-                    self.heads.append(nn.Sequential(
-                        nn.Linear(config.hidden_features, output_nodes),
-                        nn.CrossEntropyLoss(dim=-1)
-                    ))
+                # Use the ResidualNetwork for classification tasks
+                self.heads.append(
+                    ResidualNetwork(
+                        input_dim=config.hidden_features,   # Input from the hidden layer
+                        output_dim=output_nodes,            # Number of classes
+                        hidden_layer_dims=[64, 64],         # Example hidden layers
+                        activation=nn.ReLU,                # Activation function
+                        batch_norm=True                     # Use batch normalization
+                    )
+                )
 
     def forward(
         self, g: Union[Tuple[dgl.DGLGraph, dgl.DGLGraph], dgl.DGLGraph]
@@ -389,8 +414,17 @@ class ALIGNNMT(nn.Module):
         #     out = self.softmax(out)
 
         outputs = []
-        for head in self.heads:
-            outputs.append(head(h))
+        # for head in self.heads:
+        #     outputs.append(head(h))
+
+        for idx, head in enumerate(self.heads):
+            if target_list[idx]["type"] == "regression":
+                output = head(h)  # Output will be (2 * output_nodes,)
+                pred_mean, pred_log_std = torch.chunk(output, 2, dim=-1)  # Split into mean and log_std
+                outputs.append((pred_mean, pred_log_std))
+            else:
+                outputs.append(head(h))  # For classification tasks, return only the prediction
 
         # return torch.squeeze(out)
         return outputs
+
