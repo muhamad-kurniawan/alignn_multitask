@@ -329,11 +329,11 @@ class ALIGNNMT(nn.Module):
         self.heads = nn.ModuleList(
             ResidualNetwork(
                 input_dim=config.hidden_features,   # Input from the hidden layer
-                output_dim=output_nodes,        # 2x output for mean and log_std
+                output_dim=nodes,        # 2x output for mean and log_std
                 hidden_layer_dims=[64, 64],         # Example hidden layers
                 activation=nn.ReLU,                # Activation function
                 batch_norm=True                     # Use batch normalization
-            ) for n in output_nodes
+            ) for nodes in output_nodes
         )
         for idx, (task_type, output_nodes) in enumerate(zip(config.task_types, config.output_nodes)):
             if task_type == "regression":
