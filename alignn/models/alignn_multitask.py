@@ -63,6 +63,7 @@ class ALIGNNMTConfig(BaseSettings):
     link: Literal["identity", "log", "logit"] = "identity"
     zero_inflated: bool = False
     extra_features: int = 0
+    robust = False
     
     class Config:
         """Configure model settings behavior."""
