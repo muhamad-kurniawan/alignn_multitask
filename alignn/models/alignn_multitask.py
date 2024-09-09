@@ -506,7 +506,7 @@ class Normalizer:
         self.std = state_dict["std"].cpu()
 
     @classmethod
-    def from_state_dict(cls) -> Normalizer:
+    def from_state_dict(cls):
         """Create a new Normalizer given a state_dict.
 
         Args:
