@@ -321,10 +321,10 @@ class ALIGNNMT(nn.Module):
         #                 nn.Linear(config.hidden_features, output_nodes),
         #                 nn.CrossEntropyLoss(dim=-1)
         #             ))
-        if config.robust:
-            output_nodes = [2 * nodes for nodes in sum(config.output_nodes)]
+        if self.config.robust:
+            output_nodes = [2 * nodes for nodes in sum(self.config.output_nodes)]
         else:
-            output_nodes = config.output_nodes
+            output_nodes = self.config.output_nodes
 
         
         self.heads.append(
@@ -413,7 +413,7 @@ class ALIGNNMT(nn.Module):
         # for head in self.heads:
             
         #     outputs.append(head(h))
-        if config.robust:
+        if self.config.robust:
             for idx, head in enumerate(self.heads):
                 output = head(h)  # Output will be (2 * output_nodes,)
                 pred_mean, pred_log_std = torch.chunk(output, 2, dim=-1)  # Split into mean and log_std
