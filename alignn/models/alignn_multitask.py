@@ -453,7 +453,7 @@ class Normalizer:
         self.mean = torch.tensor(0)
         self.std = torch.tensor(1)
 
-    def fit(self, tensor: Tensor, dim: int = 0, keepdim: bool = False) -> None:
+    def fit(self, tensor, dim: int = 0, keepdim: bool = False) -> None:
         """Compute the mean and standard deviation of the given tensor.
 
         Args:
@@ -466,7 +466,7 @@ class Normalizer:
         self.mean = torch.mean(tensor, dim, keepdim)
         self.std = torch.std(tensor, dim, keepdim)
 
-    def norm(self, tensor: Tensor) -> Tensor:
+    def norm(self, tensor):
         """Normalize a Tensor.
 
         Args:
@@ -477,7 +477,7 @@ class Normalizer:
         """
         return (tensor - self.mean) / self.std
 
-    def denorm(self, normed_tensor: Tensor) -> Tensor:
+    def denorm(self, normed_tensor):
         """Restore normalized Tensor to original.
 
         Args:
@@ -488,7 +488,7 @@ class Normalizer:
         """
         return normed_tensor * self.std + self.mean
 
-    def state_dict(self) -> dict[str, Tensor]:
+    def state_dict(self):
         """Get Normalizer parameters mean and std.
 
         Returns:
@@ -496,7 +496,7 @@ class Normalizer:
         """
         return {"mean": self.mean, "std": self.std}
 
-    def load_state_dict(self, state_dict: dict[str, Tensor]) -> None:
+    def load_state_dict(self, state_dict) -> None:
         """Overwrite Normalizer parameters given a new state_dict.
 
         Args:
@@ -506,7 +506,7 @@ class Normalizer:
         self.std = state_dict["std"].cpu()
 
     @classmethod
-    def from_state_dict(cls, state_dict: dict[str, Tensor]) -> Normalizer:
+    def from_state_dict(cls) -> Normalizer:
         """Create a new Normalizer given a state_dict.
 
         Args:
@@ -522,7 +522,7 @@ class Normalizer:
         return instance
 
 
-def sampled_softmax(pre_logits: Tensor, log_std: Tensor, samples: int = 10) -> Tensor:
+def sampled_softmax(pre_logits, log_std, samples: int = 10):
     """Draw samples from Gaussian distributed pre-logits and use these to estimate
     a mean and aleatoric uncertainty.
 
