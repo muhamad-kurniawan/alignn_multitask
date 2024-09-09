@@ -305,7 +305,7 @@ class ALIGNNMT(nn.Module):
         #     self.link = torch.sigmoid
 
         self.heads = nn.ModuleList()
-        self.normalizers = nn.ModuleDict()
+        self.normalizers = []
         # for task_type, output_nodes in zip(config.task_types, config.output_nodes):
         #     if task_type == "regression":
         #         self.heads.append(nn.Linear(config.hidden_features, output_nodes))
@@ -325,7 +325,7 @@ class ALIGNNMT(nn.Module):
             if task_type == "regression":
                 # Use ResidualNetwork for both mean and log_std prediction
                 # Output will be 2 * output_nodes: first half for mean, second half for log_std
-                self.normalizers[f"normalizer_{idx}"] = Normalizer()
+                self.normalizers.append(Normalizer())
                 self.heads.append(
                     ResidualNetwork(
                         input_dim=config.hidden_features,   # Input from the hidden layer
@@ -430,20 +430,41 @@ class ALIGNNMT(nn.Module):
         # return torch.squeeze(out)
         return outputs
 
-    def save(self, path: str):
-        """Save model parameters and normalizer states to the specified path."""
-        model_state = {
-            "model_state_dict": self.state_dict(),
-            "normalizers": {f"normalizer_{idx}": normalizer.state_dict() for idx, normalizer in self.normalizers.items()}
-        }
-        torch.save(model_state, path)
+    # def save(self, path: str):
+    #     """Save model parameters and normalizer states to the specified path."""
+    #     model_state = {
+    #         "model_state_dict": self.state_dict(),
+    #         "normalizers": {f"normalizer_{idx}": normalizer.state_dict() for idx, normalizer in self.normalizers.items()}
+    #     }
+    #     torch.save(model_state, path)
 
-    def load(self, path: str):
-        """Load model parameters and normalizer states from the specified path."""
-        model_state = torch.load(path)
-        self.load_state_dict(model_state["model_state_dict"])
-        for idx, normalizer_state in model_state["normalizers"].items():
-            self.normalizers[idx].load_state_dict(normalizer_state)
+    # def load(self, path: str):
+    #     """Load model parameters and normalizer states from the specified path."""
+    #     model_state = torch.load(path)
+    #     self.load_state_dict(model_state["model_state_dict"])
+    #     for idx, normalizer_state in model_state["normalizers"].items():
+    #         self.normalizers[idx].load_state_dict(normalizer_state)
+
+    def save_state(self, filepath):
+        """Save the model and normalizers."""
+        # Save the model state_dict
+        torch.save({
+            'model_state_dict': self.state_dict(),
+            'normalizers': [norm.state_dict() for norm in self.normalizers]
+        }, filepath)
+
+    def load_state(self, filepath):
+        """Load the model and normalizers."""
+        # Load the state from the file
+        checkpoint = torch.load(filepath)
+
+        # Load the model state_dict
+        self.load_state_dict(checkpoint['model_state_dict'])
+
+        # Load normalizer states
+        normalizer_states = checkpoint['normalizers']
+        for norm, state in zip(self.normalizers, normalizer_states):
+            norm.load_state_dict(state)
 
 class Normalizer:
     """Normalize a Tensor and restore it later."""
