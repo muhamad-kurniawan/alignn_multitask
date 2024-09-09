@@ -305,6 +305,7 @@ class ALIGNNMT(nn.Module):
         #     self.link = torch.sigmoid
 
         self.heads = nn.ModuleList()
+        self.normalizers = nn.ModuleDict()
         # for task_type, output_nodes in zip(config.task_types, config.output_nodes):
         #     if task_type == "regression":
         #         self.heads.append(nn.Linear(config.hidden_features, output_nodes))
@@ -324,6 +325,7 @@ class ALIGNNMT(nn.Module):
             if task_type == "regression":
                 # Use ResidualNetwork for both mean and log_std prediction
                 # Output will be 2 * output_nodes: first half for mean, second half for log_std
+                self.normalizers[f"normalizer_{idx}"] = Normalizer()
                 self.heads.append(
                     ResidualNetwork(
                         input_dim=config.hidden_features,   # Input from the hidden layer
@@ -427,6 +429,21 @@ class ALIGNNMT(nn.Module):
 
         # return torch.squeeze(out)
         return outputs
+
+    def save(self, path: str):
+        """Save model parameters and normalizer states to the specified path."""
+        model_state = {
+            "model_state_dict": self.state_dict(),
+            "normalizers": {f"normalizer_{idx}": normalizer.state_dict() for idx, normalizer in self.normalizers.items()}
+        }
+        torch.save(model_state, path)
+
+    def load(self, path: str):
+        """Load model parameters and normalizer states from the specified path."""
+        model_state = torch.load(path)
+        self.load_state_dict(model_state["model_state_dict"])
+        for idx, normalizer_state in model_state["normalizers"].items():
+            self.normalizers[idx].load_state_dict(normalizer_state)
 
 class Normalizer:
     """Normalize a Tensor and restore it later."""
