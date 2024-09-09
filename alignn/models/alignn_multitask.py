@@ -306,7 +306,7 @@ class ALIGNNMT(nn.Module):
         #     self.link = torch.sigmoid
 
         self.heads = nn.ModuleList()
-        self.normalizers = []
+        self.normalizers = {}
         # for task_type, output_nodes in zip(config.task_types, config.output_nodes):
         #     if task_type == "regression":
         #         self.heads.append(nn.Linear(config.hidden_features, output_nodes))
@@ -321,34 +321,25 @@ class ALIGNNMT(nn.Module):
         #                 nn.Linear(config.hidden_features, output_nodes),
         #                 nn.CrossEntropyLoss(dim=-1)
         #             ))
+        if config.robust:
+            output_nodes = [2 * nodes for nodes in sum(config.output_nodes)]
+        else:
+            output_nodes = config.output_nodes
 
+        
+        self.heads.append(
+            ResidualNetwork(
+                input_dim=config.hidden_features,   # Input from the hidden layer
+                output_dim=output_nodes,        # 2x output for mean and log_std
+                hidden_layer_dims=[64, 64],         # Example hidden layers
+                activation=nn.ReLU,                # Activation function
+                batch_norm=True                     # Use batch normalization
+            )
+        )
         for idx, (task_type, output_nodes) in enumerate(zip(config.task_types, config.output_nodes)):
-            if config.robust:
-                output_nodes = 2 * output_nodes
             if task_type == "regression":
-                # Use ResidualNetwork for both mean and log_std prediction
-                # Output will be 2 * output_nodes: first half for mean, second half for log_std
-                self.normalizers.append(Normalizer())
-                self.heads.append(
-                    ResidualNetwork(
-                        input_dim=config.hidden_features,   # Input from the hidden layer
-                        output_dim=output_nodes,        # 2x output for mean and log_std
-                        hidden_layer_dims=[64, 64],         # Example hidden layers
-                        activation=nn.ReLU,                # Activation function
-                        batch_norm=True                     # Use batch normalization
-                    )
-                )
-            elif task_type == "classification":
-                # Use the ResidualNetwork for classification tasks
-                self.heads.append(
-                    ResidualNetwork(
-                        input_dim=config.hidden_features,   # Input from the hidden layer
-                        output_dim=output_nodes,            # Number of classes
-                        hidden_layer_dims=[64, 64],         # Example hidden layers
-                        activation=nn.ReLU,                # Activation function
-                        batch_norm=True                     # Use batch normalization
-                    )
-                )
+                self.normalizers[task_type] = Normalizer()
+
 
     def forward(
         self, g: Union[Tuple[dgl.DGLGraph, dgl.DGLGraph], dgl.DGLGraph]
@@ -420,6 +411,7 @@ class ALIGNNMT(nn.Module):
 
         outputs = []
         # for head in self.heads:
+            
         #     outputs.append(head(h))
         if config.robust:
             for idx, head in enumerate(self.heads):
