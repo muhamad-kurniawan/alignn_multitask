@@ -6,6 +6,7 @@ import os
 from typing import Literal
 from alignn.utils import BaseSettings
 from alignn.models.alignn import ALIGNNConfig
+from alignn.models.alignn_multitask import ALIGNNMTConfig
 from alignn.models.alignn_atomwise import ALIGNNAtomWiseConfig
 
 # from alignn.models.modified_cgcnn import CGCNNConfig
@@ -219,6 +220,7 @@ class TrainingConfig(BaseSettings):
     # model configuration
     model: Union[
         ALIGNNConfig,
+        ALIGNNMTConfig,
         ALIGNNAtomWiseConfig,
         # CGCNNConfig,
         # ICGCNNConfig,
