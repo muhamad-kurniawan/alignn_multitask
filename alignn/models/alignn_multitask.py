@@ -337,7 +337,7 @@ class ALIGNNMT(nn.Module):
         )
         for idx, (task_type, output_nodes) in enumerate(zip(config.task_types, config.output_nodes)):
             if task_type == "regression":
-                self.normalizers[task_type] = Normalizer()
+                self.normalizers[idx] = Normalizer()
 
 
     def forward(
