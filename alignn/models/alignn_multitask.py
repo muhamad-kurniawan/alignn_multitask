@@ -417,6 +417,9 @@ class ALIGNNMT(nn.Module):
                 output = head(h)  # Output will be (2 * output_nodes,)
                 pred_mean, pred_log_std = torch.chunk(output, 2, dim=-1)  # Split into mean and log_std
                 outputs.append((pred_mean, pred_log_std))
+        else:
+            for head in self.heads:
+                outputs.append(head(h))
 
         # return torch.squeeze(out)
         return outputs
