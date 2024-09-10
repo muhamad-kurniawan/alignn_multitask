@@ -219,9 +219,9 @@ class TrainingConfig(BaseSettings):
 
     # model configuration
     model: Union[
-        ALIGNNConfig,
+        # ALIGNNConfig,
         ALIGNNMTConfig,
-        ALIGNNAtomWiseConfig,
+        # ALIGNNAtomWiseConfig,
         # CGCNNConfig,
         # ICGCNNConfig,
         # SimpleGCNConfig,
