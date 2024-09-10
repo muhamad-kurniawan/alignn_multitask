@@ -322,7 +322,7 @@ class ALIGNNMT(nn.Module):
         #                 nn.CrossEntropyLoss(dim=-1)
         #             ))
         if self.config.robust:
-            output_nodes = [2 * nodes for nodes in sum(self.config.output_nodes)]
+            output_nodes = [2 * nodes for nodes in self.config.output_nodes]
         else:
             output_nodes = self.config.output_nodes
 
