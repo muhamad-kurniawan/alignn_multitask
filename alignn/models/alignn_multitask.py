@@ -330,7 +330,7 @@ class ALIGNNMT(nn.Module):
             ResidualNetwork(
                 input_dim=config.hidden_features,   # Input from the hidden layer
                 output_dim=nodes,        # 2x output for mean and log_std
-                hidden_layer_dims=[1024, 512, 512],         # Example hidden layers
+                hidden_layer_dims=[512, 128, 128],         # Example hidden layers
                 activation=nn.ReLU,                # Activation function
                 batch_norm=True                     # Use batch normalization
             ) for nodes in output_nodes
