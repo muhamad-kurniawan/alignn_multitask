@@ -98,7 +98,9 @@ class TorchLMDBDataset(Dataset):
 def get_torch_dataset(
     dataset=[],
     id_tag="jid",
-    target="",
+    targets=None,
+    target='target',
+    # targets=[],
     target_atomwise="",
     target_grad="",
     target_stress="",
