@@ -118,6 +118,7 @@ def get_torch_dataset(
     tmp_name="dataset",
     map_size=1e12,
     read_existing=True,
+    cachedir=None
 ):
     """Get Torch Dataset with LMDB."""
     vals = np.array([ii[target] for ii in dataset])  # df[target].values
