@@ -217,6 +217,9 @@ class TrainingConfig(BaseSettings):
     # triplet_input_features: int=40
     # embedding_features: int=64
 
+    tasks = ['regression']
+    nodes = [1]
+
     # model configuration
     model: Union[
         ALIGNNConfig,
