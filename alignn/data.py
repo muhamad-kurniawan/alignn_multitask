@@ -119,7 +119,8 @@ def get_train_val_loaders(
     dataset: str = "dft_3d",
     dataset_array=None,
     # target: str = "formation_energy_peratom",
-    targets: List[Dict[str, str]] = [{"":""}],
+    targets: List = ["target"],
+    tasks: List = ["regression"],
     target_atomwise: str = "",
     target_grad: str = "",
     target_stress: str = "",
@@ -273,7 +274,7 @@ def get_train_val_loaders(
             for id_target in range(len(targets)):
                 value = i['target'][id_target]
                 if value is not None and value != "na" and not math.isnan(value):
-                    if targets[id_target]['type'] == 'classification':
+                    if tasks[id_target] == 'classification':
                         if targets[id_target].get('classification_threshold') is not None:
                             if value <= targets[id_target]['classification_threshold']:
                                 value = 0
