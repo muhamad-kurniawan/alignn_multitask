@@ -170,6 +170,7 @@ def train_dgl(
         ) = get_train_val_loaders(
             dataset=config.dataset,
             target=config.target,
+            tasks=config.tasks,
             n_train=config.n_train,
             n_val=config.n_val,
             n_test=config.n_test,
@@ -317,10 +318,12 @@ def train_dgl(
                 pred_out = np.array(pred_out)
                 # print('target_out',target_out,target_out.shape)
                 # print('pred_out',pred_out,pred_out.shape)
-                if classification:
-                    mean_out = log_loss(target_out, pred_out)
-                else:
-                    mean_out = mean_absolute_error(target_out, pred_out)
+                mean_out = []
+                for n2 in range(len(target_out)):
+                    if classification:
+                        mean_out.append(log_loss(target_out[n2], pred_out[n2]))
+                    else:
+                        mean_out.append(mean_absolute_error(target_out[n2], pred_out[n2]))
             if "target_stress" in i:
                 # if i["target_stress"]:
                 mean_stress = np.array(stress).mean()
@@ -337,9 +340,12 @@ def train_dgl(
             return mean_out, mean_atom, mean_grad, mean_stress
 
         best_loss = np.inf
-        criterion = nn.L1Loss()
-        if classification:
-            criterion = nn.NLLLoss()
+        criterion = []
+        for t in range(len(tasks)):
+            if t == 'regression':
+                criterion.append(nn.L1Loss())
+            elif t == 'classification':
+                criterion.append(nn.NLLLoss())
         params = group_decay(net)
         optimizer = setup_optimizer(params, config)
         # optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
@@ -369,18 +375,19 @@ def train_dgl(
                 info["target_stress"] = []
                 info["pred_stress"] = []
 
-                loss1 = 0  # Such as energy
+                loss1 = []  # Such as energy
                 loss2 = 0  # Such as bader charges
                 loss3 = 0  # Such as forces
                 loss4 = 0  # Such as stresses
                 if config.model.output_features is not None:
                     # print('result["out"]',result["out"])
                     # print('dats[2]',dats[2])
-                    loss1 = config.model.graphwise_weight * criterion(
-                        result["out"],
-                        dats[-1].to(device),
-                        # result["out"], dats[2].to(device)
-                    )
+                    for c in range(len(criterion)):
+                        loss1.append(config.model.graphwise_weight * criterion[c](
+                            result["out"][c],
+                            dats[-1][c].to(device),
+                            # result["out"], dats[2].to(device)
+                        ))
                     info["target_out"] = dats[-1].cpu().numpy().tolist()
                     # info["target_out"] = dats[2].cpu().numpy().tolist()
                     info["pred_out"] = (
@@ -403,7 +410,7 @@ def train_dgl(
                     # config.model.atomwise_output_features is not None
                     and config.model.atomwise_weight != 0
                 ):
-                    loss2 = config.model.atomwise_weight * criterion(
+                    loss2 = config.model.atomwise_weight * nn.L1Loss(
                         result["atomwise_pred"].to(device),
                         dats[0].ndata["atomwise_target"].to(device),
                     )
@@ -421,7 +428,7 @@ def train_dgl(
                     # )
 
                 if config.model.calculate_gradient:
-                    loss3 = config.model.gradwise_weight * criterion(
+                    loss3 = config.model.gradwise_weight * nn.L1Loss(
                         result["grad"].to(device),
                         dats[0].ndata["atomwise_grad"].to(device),
                     )
@@ -453,7 +460,7 @@ def train_dgl(
                     # torch.cat(dats[0].ndata["stresses"]).shape)
                     # print('result["stresses"]',result["stresses"],result["stresses"].shape)
                     # print(dats[0].ndata["stresses"],dats[0].ndata["stresses"].shape)
-                    loss4 = config.model.stresswise_weight * criterion(
+                    loss4 = config.model.stresswise_weight * nn.L1Loss(
                         (result["stresses"]).to(device),
                         torch.cat(tuple(dats[0].ndata["stresses"])).to(device),
                     )
@@ -470,7 +477,7 @@ def train_dgl(
                     # print("target_stress", info["target_stress"][0])
                     # print("pred_stress", info["pred_stress"][0])
                 train_result.append(info)
-                loss = loss1 + loss2 + loss3 + loss4
+                loss = sum(loss1) + loss2 + loss3 + loss4
                 loss.backward()
                 optimizer.step()
                 # optimizer.zero_grad() #never
@@ -509,19 +516,19 @@ def train_dgl(
                 info["pred_grad"] = []
                 info["target_stress"] = []
                 info["pred_stress"] = []
-                loss1 = 0  # Such as energy
+                loss1 = []  # Such as energy
                 loss2 = 0  # Such as bader charges
                 loss3 = 0  # Such as forces
                 loss4 = 0  # Such as stresses
                 if config.model.output_features is not None:
-                    loss1 = config.model.graphwise_weight * criterion(
-                        result["out"], dats[-1].to(device)
-                    )
-                    info["target_out"] = dats[-1].cpu().numpy().tolist()
-                    info["pred_out"] = (
-                        result["out"].cpu().detach().numpy().tolist()
-                    )
-
+                    for c in range(len(criterion)):
+                        loss1.append(config.model.graphwise_weight * criterion[c](
+                            result["out"][c], dats[-1][c].to(device)
+                        ))
+                        info["target_out"].append(dats[-1][c].cpu().numpy().tolist())
+                        info["pred_out"].append(
+                            result["out"][c].cpu().detach().numpy().tolist()
+                        )
                 if (
                     config.model.atomwise_output_features > 0
                     and config.model.atomwise_weight != 0
@@ -571,7 +578,7 @@ def train_dgl(
                     info["pred_stress"] = (
                         result["stresses"].cpu().detach().numpy().tolist()
                     )
-                loss = loss1 + loss2 + loss3 + loss4
+                loss = sum(loss1) + loss2 + loss3 + loss4
                 val_result.append(info)
                 val_loss += loss.item()
             mean_out, mean_atom, mean_grad, mean_stress = get_batch_errors(
@@ -663,7 +670,7 @@ def train_dgl(
                     result = net([dats[0].to(device), dats[1].to(device)])
                 else:
                     result = net(dats[0].to(device))
-                loss1 = 0  # Such as energy
+                loss1 = []  # Such as energy
                 loss2 = 0  # Such as bader charges
                 loss3 = 0  # Such as forces
                 loss4 = 0  # Such as stresses
@@ -673,13 +680,14 @@ def train_dgl(
                 ):
                     # print('result["out"]',result["out"])
                     # print('dats[2]',dats[2])
-                    loss1 = config.model.graphwise_weight * criterion(
-                        result["out"], dats[-1].to(device)
-                    )
-                    info["target_out"] = dats[-1].cpu().numpy().tolist()
-                    info["pred_out"] = (
-                        result["out"].cpu().detach().numpy().tolist()
-                    )
+                    for c in range(len(criterion)):
+                        loss1.append(config.model.graphwise_weight * criterion[c](
+                                result["out"][c], dats[-1][c].to(device)
+                            ))
+                        info["target_out"].append(dats[-1][c].cpu().numpy().tolist())
+                        info["pred_out"].append(
+                            result["out"][c].cpu().detach().numpy().tolist()
+                        )
 
                 if config.model.atomwise_output_features > 0:
                     loss2 = config.model.atomwise_weight * criterion(
@@ -728,7 +736,7 @@ def train_dgl(
                         result["stresses"].cpu().detach().numpy().tolist()
                     )
                 test_result.append(info)
-                loss = loss1 + loss2 + loss3 + loss4
+                loss = sum(loss1) + loss2 + loss3 + loss4
                 if not classification:
                     test_loss += loss.item()
             print("TestLoss", e, test_loss)
