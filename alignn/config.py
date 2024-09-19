@@ -219,6 +219,7 @@ class TrainingConfig(BaseSettings):
 
     tasks: List = ['regression']
     nodes: List = [1]
+    targets: List = ['target']
 
     # model configuration
     model: Union[
