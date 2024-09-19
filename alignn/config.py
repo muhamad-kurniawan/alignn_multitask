@@ -18,7 +18,7 @@ from alignn.models.alignn_atomwise import ALIGNNAtomWiseConfig
 # from alignn.models.alignn_cgcnn import ACGCNNConfig
 # from alignn.models.alignn_layernorm import ALIGNNConfig as ALIGNN_LN_Config
 
-# from typing import List
+from typing import List
 
 try:
     VERSION = (
@@ -217,8 +217,8 @@ class TrainingConfig(BaseSettings):
     # triplet_input_features: int=40
     # embedding_features: int=64
 
-    tasks = ['regression']
-    nodes = [1]
+    tasks: List = ['regression']
+    nodes: List = [1]
 
     # model configuration
     model: Union[
