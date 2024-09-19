@@ -232,11 +232,12 @@ def train_for_folder(
             tmp = [float(j) for j in i[1:]]  # float(i[1])
             info["jid"] = file_name
 
-            if len(tmp) == 1:
-                tmp = tmp[0]
-            else:
-                multioutput = True
-                n_outputs.append(tmp)
+            # if len(tmp) == 1:
+            #     tmp = tmp[0]
+            # else:
+            multioutput = True
+            n_outputs.append(tmp)
+            
             info["target"] = tmp
             file_path = os.path.join(root_dir, file_name)
             if file_format == "poscar":
