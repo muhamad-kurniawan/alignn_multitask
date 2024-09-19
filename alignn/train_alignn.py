@@ -371,7 +371,7 @@ def train_for_folder(
         prepare_batch,
     ) = get_train_val_loaders(
         dataset_array=dataset,
-        target="target",
+        # target="target",
         target_atomwise=target_atomwise,
         target_grad=target_grad,
         target_stress=target_stress,
