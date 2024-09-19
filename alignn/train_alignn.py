@@ -373,6 +373,8 @@ def train_for_folder(
     ) = get_train_val_loaders(
         dataset_array=dataset,
         # target="target",
+        targets=config.targets,
+        tasks=config.tasks,
         target_atomwise=target_atomwise,
         target_grad=target_grad,
         target_stress=target_stress,
