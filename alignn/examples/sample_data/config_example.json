@@ -2,8 +2,8 @@
     "version": "112bbedebdaecf59fb18e11c929080fb2f358246",
     "dataset": "user_data",
     "target": "target",
-    "tasks": ['regression']
-    "nodes": [1]
+    "tasks": ['regression'],
+    "nodes": [1],
     "atom_features": "cgcnn",
     "neighbor_strategy": "k-nearest",
     "id_tag": "jid",
